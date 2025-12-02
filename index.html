@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FocusED App</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+<meta name="theme-color" content="#3b82f6">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,sans-serif}
+body{min-height:100vh;display:flex;flex-direction:column;transition:.3s}
+body.light{background:linear-gradient(135deg,#60a5fa,#3b82f6);color:#fff}
+body.dark{background:#1f2937;color:#f3f4f6}
+header{padding:20px;text-align:center;transition:.3s}
+h1{font-size:36px;font-weight:800;animation:fadeInUp 0.7s}
+.subtitle{opacity:.85;font-size:16px;animation:fadeInUp 1s}
+.main-container{flex:1;display:flex;gap:20px;padding:20px;max-width:1400px;margin:auto;flex-wrap:wrap;transition:.3s}
+.sidebar{flex:1 1 300px;display:flex;flex-direction:column;gap:20px}
+.content{flex:2 1 600px;display:flex;flex-direction:column;gap:20px}
+.card{background:rgba(255,255,255,.15);border-radius:20px;padding:20px;backdrop-filter:blur(12px);box-shadow:0 10px 25px rgba(0,0,0,.15);transition:.3s}
+body.dark .card{background:rgba(31,41,55,.85);backdrop-filter:none;box-shadow:0 10px 25px rgba(0,0,0,.5)}
+.card:hover{transform:translateY(-5px);box-shadow:0 15px 30px rgba(0,0,0,.25)}
+.card-title{display:flex;align-items:center;font-size:20px;font-weight:700;margin-bottom:12px}
+.material-icons-outlined{font-size:26px;margin-right:10px}
+button{width:100%;padding:12px;margin-top:12px;font-size:16px;border:none;border-radius:12px;color:#fff;font-weight:600;background:linear-gradient(135deg,#3b82f6,#2563eb);cursor:pointer;transition:.25s}
+button:hover{transform:scale(1.03);box-shadow:0 6px 15px rgba(0,0,0,.25)}
+select,input{width:100%;padding:10px;border-radius:10px;border:none;margin-top:8px;font-size:16px}
+a{cursor:pointer;text-decoration:underline;font-size:14px}
+.popup{position:fixed;bottom:25px;right:25px;padding:15px 20px;border-radius:12px;display:none;font-size:16px;z-index:1000;animation:fadeIn .5s}
+.popup.success{background:rgba(34,197,94,.9)}
+.popup.warning{background:rgba(239,68,68,.9)}
+.popup.info{background:rgba(59,130,246,.9)}
+.progress-container{width:100%;background:rgba(255,255,255,.2);border-radius:12px;height:20px;margin-top:10px}
+body.dark .progress-container{background:rgba(243,244,246,.2)}
+.progress-bar{height:100%;background:#22c55e;width:0%;border-radius:12px;transition:.3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:900px){.main-container{flex-direction:column}}
+.toggle-theme{position:fixed;top:20px;right:20px;background:#fff;color:#3b82f6;padding:8px 12px;border-radius:10px;cursor:pointer;z-index:1000}
+body.dark .toggle-theme{background:#3b82f6;color:#fff}
+</style>
+</head>
+<body class="light">
+
+<div class="toggle-theme" onclick="toggleTheme()">Đổi theme</div>
+
+<header>
+  <h1>FocusED</h1>
+  <p class="subtitle">Tập trung – Tích điểm – Đổi thưởng – Nâng kỹ năng</p>
+</header>
+
+<div class="main-container">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="card" id="auth-card">
+      <div class="card-title"><span class="material-icons-outlined">person</span>Đăng nhập</div>
+      <div id="login-form">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="Nhập email">
+        <label>Mật khẩu</label>
+        <input type="password" id="login-password" placeholder="Nhập mật khẩu">
+        <button onclick="login()">Đăng nhập</button>
+        <p style="margin-top:10px;text-align:center;">Chưa có tài khoản? <a onclick="showRegister()">Đăng ký</a></p>
+      </div>
+      <div id="register-form" style="display:none">
+        <label>Email</label>
+        <input type="email" id="reg-email" placeholder="Nhập email">
+        <label>Mật khẩu</label>
+        <input type="password" id="reg-password" placeholder="Nhập mật khẩu">
+        <label>Nhập lại mật khẩu</label>
+        <input type="password" id="reg-password2" placeholder="Nhập lại mật khẩu">
+        <label>Tên hiển thị</label>
+        <input type="text" id="reg-name" placeholder="Tên của bạn">
+        <button onclick="register()">Đăng ký</button>
+        <p style="margin-top:10px;text-align:center;">Đã có tài khoản? <a onclick="showLogin()">Đăng nhập</a></p>
+      </div>
+    </div>
+
+    <div class="card" id="user-stats" style="display:none">
+      <div class="card-title"><span class="material-icons-outlined">account_circle</span>Xin chào, <span id="user-name"></span></div>
+      <button onclick="logout()">Đăng xuất</button>
+      <p>FP: <b id="fp">0</b></p>
+      <p>Chuỗi: <b id="chain">0 phút</b></p>
+    </div>
+
+    <div class="card" id="store-card" style="display:none">
+      <div class="card-title"><span class="material-icons-outlined">store</span>Cửa hàng Rewards</div>
+      <div id="store"></div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="content" id="main-app" style="display:none">
+    <div class="card">
+      <div class="card-title"><span class="material-icons-outlined">timer</span>Chế Độ Tập Trung Nghiêm</div>
+      <label>Môn học</label>
+      <select id="subject">
+        <option>Toán Cao Cấp</option>
+        <option>Luật Kinh Doanh</option>
+        <option>Tiếng Anh Tổng Quát</option>
+      </select>
+      <label>Thời gian học (phút)</label>
+      <input id="minutes" type="number" min="1" value="25">
+      <button onclick="startFocus()">Bắt đầu phiên tập trung</button>
+      <div class="progress-container">
+        <div id="progress-bar" class="progress-bar"></div>
+      </div>
+      <div style="margin-top:10px;font-size:14px;opacity:.8;">Luật: "Thoát là Mất" — rời tab hoặc mở ứng dụng khác sẽ bị hủy và không được nhận FP.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="material-icons-outlined">star</span>Focus Level & Tips</div>
+      <p>Level môn <b id="level-subject">-</b>: <b id="level">1</b></p>
+      <ul id="tips"></ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="material-icons-outlined">leaderboard</span>Leaderboard</div>
+      <ol id="leaderboard">
+        <li>Chưa có dữ liệu</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<div id="popup" class="popup"></div>
+
+<script>
+// --- Theme ---
+function toggleTheme(){
+  document.body.classList.toggle("dark");
+  document.body.classList.toggle("light");
+}
+
+// --- Auth & storage ---
+let user={name:"",email:""};
+const usersKey="fe_users";
+function showRegister(){document.getElementById("login-form").style.display="none";document.getElementById("register-form").style.display="block";}
+function showLogin(){document.getElementById("login-form").style.display="block";document.getElementById("register-form").style.display="none";}
+
+function login(){
+  const email=document.getElementById("login-email").value.trim();
+  const password=document.getElementById("login-password").value;
+  if(!email||!password){showPopup("Vui lòng điền đầy đủ thông tin","warning");return;}
+  let users=JSON.parse(localStorage.getItem(usersKey)||"{}");
+  if(users[email] && users[email].password===password){
+    user={...users[email]};
+    localStorage.setItem("fe_user",JSON.stringify(user));
+    loadUserData();
+    showPopup("Đăng nhập thành công 🎉","success");
+  }else{showPopup("Email hoặc mật khẩu không đúng","warning");}
+}
+
+function register(){
+  const email=document.getElementById("reg-email").value.trim();
+  const password=document.getElementById("reg-password").value;
+  const password2=document.getElementById("reg-password2").value;
+  const name=document.getElementById("reg-name").value.trim();
+  if(!email||!password||!password2||!name){showPopup("Vui lòng điền đầy đủ thông tin","warning");return;}
+  if(password!==password2){showPopup("Mật khẩu nhập lại không khớp","warning");return;}
+  let users=JSON.parse(localStorage.getItem(usersKey)||"{}");
+  if(users[email]){showPopup("Email đã được đăng ký","warning");return;}
+  users[email]={email,password,name,fp:0,chain:0,subjectSeconds:{}};
+  localStorage.setItem(usersKey,JSON.stringify(users));
+  showPopup("Đăng ký thành công! Vui lòng đăng nhập","success");
+  showLogin();
+}
+
+function logout(){
+  user={name:"",email:""};
+  localStorage.removeItem("fe_user");
+  document.getElementById("auth-card").style.display="block";
+  document.getElementById("main-app").style.display="none";
+  document.getElementById("user-stats").style.display="none";
+  document.getElementById("store-card").style.display="none";
+  showPopup("Đã đăng xuất","info");
+}
+
+function loadUserData(){
+  document.getElementById("auth-card").style.display="none";
+  document.getElementById("main-app").style.display="block";
+  document.getElementById("user-stats").style.display="block";
+  document.getElementById("store-card").style.display="block";
+  document.getElementById("user-name").innerText=user.name;
+  fp=user.fp||0;
+  chainTime=user.chain||0;
+  subjectSeconds=user.subjectSeconds||{};
+  document.getElementById("fp").innerText=fp;
+  document.getElementById("chain").innerText=chainTime+" phút";
+  updateLevelTips();
+  loadStore();
+  updateLeaderboard();
+}
+
+// --- Focus session with progress ---
+let fp=0,chainTime=0,timer,isFocusing=false,totalSeconds=0,subjectSeconds={};
+function startFocus(){
+  if(isFocusing){showPopup("Phiên đang chạy","info");return;}
+  const mins=parseInt(document.getElementById("minutes").value);
+  const subject=document.getElementById("subject").value;
+  isFocusing=true;
+  let secondsLeft=mins*60;
+  totalSeconds=0;
+  showPopup("Bạn đang tập trung môn: "+subject,"info");
+  const progressBar=document.getElementById("progress-bar");
+  progressBar.style.width="0%";
+  timer=setInterval(()=>{
+    secondsLeft--;
+    totalSeconds++;
+    subjectSeconds[subject]=(subjectSeconds[subject]||0)+1;
+    const percent=Math.floor(totalSeconds/(mins*60)*100);
+    progressBar.style.width=percent+"%";
+    updateLevelTips();
+    if(document.hidden){endSession(false);}
+    if(secondsLeft<=0){endSession(true);}
+  },1000);
+}
+
+function endSession(success){
+  clearInterval(timer);
+  isFocusing=false;
+  const progressBar=document.getElementById("progress-bar");
+  progressBar.style.width="0%";
+  if(success){
+    const gained=Math.floor(totalSeconds/60);
+    fp+=gained;
+    chainTime+=gained;
+    showPopup("Hoàn thành! +"+gained+" FP 🎉","success");
+  }else{
+    chainTime=0;
+    showPopup("Phiên học bị hủy ❌","warning");
+  }
+  document.getElementById("fp").innerText=fp;
+  document.getElementById("chain").innerText=chainTime+" phút";
+  saveUserData();
+  updateLeaderboard();
+}
+
+// --- Level & Tips with level up notification ---
+let lastLevel=0;
+function updateLevelTips(){
+  const subject=document.getElementById("subject").value;
+  const secs=subjectSeconds[subject]||0;
+  const level=Math.floor(secs/300)+1;
+  document.getElementById("level").innerText=level;
+  document.getElementById("level-subject").innerText=subject;
+  if(level>lastLevel){showPopup("Level mới đạt: "+level+" 🎉","success"); lastLevel=level;}
+  const tips=[];
+  if(level>=5) tips.push("Mẹo: Lập lịch ôn tập 2 ngày/7 ngày.");
+  if(level>=10) tips.push("Mẹo nâng cao: Phương pháp Feynman.");
+  if(level>=20) tips.push("Tài liệu chuyên sâu: Sách & khóa học nâng cao.");
+  const tipsEl=document.getElementById("tips");
+  tipsEl.innerHTML="";
+  tips.forEach(t=>{const li=document.createElement("li");li.innerText=t;tipsEl.appendChild(li)});
+}
+
+// --- Leaderboard thật ---
+function updateLeaderboard(){
+  let users=JSON.parse(localStorage.getItem(usersKey)||"{}");
+  let lbArr=Object.values(users).sort((a,b)=>b.fp-a.fp).slice(0,10);
+  const lb=document.getElementById("leaderboard");
+  lb.innerHTML="";
+  lbArr.forEach(u=>{
+    const li=document.createElement("li");
+    li.innerText=u.name+" - "+u.fp+" FP";
+    if(u.email===user.email) li.style.fontWeight="bold";
+    lb.appendChild(li);
+  });
+}
+
+// --- Store ---
+let storeItems=[
+  {id:1,title:"Voucher sách - 50 FP",cost:50,desc:"Voucher giảm giá sách"},
+  {id:2,title:"Theme độc quyền - 20 FP",cost:20,desc:"Mở khóa theme mới"},
+  {id:3,title:"Focus Music Premium - 100 FP",cost:100,desc:"Mở khóa playlist"},
+  {id:4,title:"Đóng góp thiện nguyện - 10 FP",cost:10,desc:"Quy đổi FP thành đóng góp xã hội"}
+];
+
+function loadStore(){
+  const storeEl=document.getElementById("store");
+  storeEl.innerHTML="";
+  storeItems.forEach(item=>{
+    const div=document.createElement("div");
+    div.className="card";
+    div.innerHTML=`<b>${item.title}</b><br><span style="font-size:14px;opacity:.8">${item.desc}</span><br><button>Đổi ${item.cost} FP</button>`;
+    div.querySelector("button").onclick=()=>{
+      if(fp<item.cost){showPopup("Bạn không đủ FP","warning");return;}
+      fp-=item.cost;
+      document.getElementById("fp").innerText=fp;
+      saveUserData();
+      showPopup("Đã đổi "+item.title,"success");
+      updateLeaderboard();
+    };
+    storeEl.appendChild(div);
+  });
+}
+
+// --- Lưu dữ liệu user ---
+function saveUserData(){
+  let users=JSON.parse(localStorage.getItem(usersKey)||"{}");
+  user.fp=fp;
+  user.chain=chainTime;
+  user.subjectSeconds=subjectSeconds;
+  users[user.email]=user;
+  localStorage.setItem(usersKey,JSON.stringify(users));
+  localStorage.setItem("fe_user",JSON.stringify(user));
+}
+
+// --- Popup ---
+function showPopup(msg,type="info"){
+  const p=document.getElementById("popup");
+  p.innerText=msg;
+  p.className="popup "+type;
+  p.style.display="block";
+  setTimeout(()=>p.style.display="none",3000);
+}
+
+// --- Mất tập trung: rời tab / blur ---
+document.addEventListener("visibilitychange",()=>{if(isFocusing&&document.hidden){endSession(false);}});
+window.addEventListener("blur",()=>{if(isFocusing){endSession(false);}});
+
+// --- load user nếu lưu ---
+window.onload=function(){
+  const saved=JSON.parse(localStorage.getItem("fe_user"));
+  if(saved){user=saved;loadUserData();}
+}
+</script>
+
+</body>
+</html>
